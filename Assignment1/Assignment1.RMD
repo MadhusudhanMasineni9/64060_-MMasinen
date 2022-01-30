@@ -1,0 +1,124 @@
+---
+title: "Assignment1_CarsDataSet"
+author: "MadhusudhanMasineni"
+date: "1/28/2022"
+output: 
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Cars Data Set import and read
+
+The cars dataset downloaded from kaggle and to plot, explore the statistical variables. Due to large dataset minimized to 2000 records of different car models and makers.
+
+https://www.kaggle.com/aishwaryamuthukumar/cars-dataset-audi-bmw-ford-hyundai-skoda-vw
+
+## Read csv file 
+```{r carsDetails}
+#setwd("C:/Users/madhu/OneDrive/Desktop/MS/RWorking")
+#install.packages(readr)
+library(readr)
+cars <- read.csv("cars_dataset.csv", header = T, sep = ",")
+
+```
+
+# Descriptive Statistics
+```{r}
+dim(cars)
+ls(cars)
+head(cars)
+str(cars)
+```
+
+# Verify the data null
+
+```{r}
+any(is.na(cars))
+sum(is.na(cars))
+colSums(is.na(cars))
+```
+
+# plot some models
+```{r}
+plot(as.factor(cars$model))
+plot(as.numeric(cars$price))
+```
+
+## plot some statistics of the main variables : quantitative and categorical variables
+```{r}
+
+mean(cars$price)
+median(cars$mileage)
+quantile(cars$price)
+sd(cars$price)
+
+max(cars$price)
+min(cars$price)
+
+summary(as.factor(cars$Make))
+summary(cars$price)
+
+summary(cars$engineSize)
+summary(cars$mileage)
+
+```
+
+# car makes and their model corresponding cars price
+```{r}
+table(cars$model, cars$price, cars$mileage)
+
+```
+## include plots
+
+```{r cars, echo=FALSE}
+#transform
+(summary(cars$mileage))
+summary(cars$year)
+
+table(cars$model)
+table(cars$fuelType)
+
+```
+
+## Transformation
+
+```{r}
+summary(log10(cars$price))
+transform(cars$model)
+
+```
+
+# plot 
+```{r}
+plot(as.factor(cars$model),as.numeric(cars$price))
+plot(as.factor(cars$model), as.numeric(cars$mileage))
+
+barplot(table(cars$model, cars$year), main = "year wise making",
+        xlab = "No.Of Cars", ylab = "year", las=1, horiz = T, col="gray")
+
+hist(cars$year, freq = FALSE,main = "Cars making over the years", xlab = "years", ylab = "%", col="green")
+```
+
+#scatter plot & install ggplot and plot the scatter plot 
+```{r}
+#install.packages("car")
+
+library(car)
+scatterplot(as.factor(cars$model), as.numeric(cars$price))
+
+library(ggplot2)
+
+ggplot(cars) +
+ aes(x = model, y = mileage, fill = engineSize, colour = Make) +
+ geom_boxplot() +
+ scale_fill_gradient() +
+ scale_color_hue(direction = 1) +
+ theme_minimal()
+
+```
