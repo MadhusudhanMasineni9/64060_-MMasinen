@@ -1,0 +1,109 @@
+---
+title: "Assignment1_CarsDataSet"
+author: "MadhusudhanMasineni"
+date: "1/28/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Cars Data Set
+
+The cars dataset downloaded from kaggle and to plot, explore the statistical variables. Due to large dataset minimized to 2000 records of different car models and makers.
+
+https://www.kaggle.com/aishwaryamuthukumar/cars-dataset-audi-bmw-ford-hyundai-skoda-vw
+
+```{r}
+install.packages("rmarkdown")
+
+```
+
+## Read csv file 
+```{r cars}
+#cars <- read.csv(file.choose())
+#install.packages(readr)
+library(readr)
+cars <- read.csv("C:/Users/madhu/OneDrive/Desktop/MS/RWorking/cars_dataset.csv")
+
+```
+
+## scatter plots
+```{r}
+# cars model
+
+print(cars$model)
+```
+
+## Printing quantitative and categorical variables
+```{r}
+# cars model
+print(cars$model)
+
+# price
+print(cars$price)
+
+```
+## include plots
+
+```{r cars, echo=FALSE}
+# cars model
+plot(as.factor(cars$model))
+
+# price
+plot(as.numeric(cars$price))
+
+#transform
+(summary(cars$mileage))
+summary(cars$year)
+
+table(cars$model)
+table(cars$fuelType)
+
+df
+# cars model
+plot(as.factor(cars$model),as.numeric(cars$price))
+
+# Quantitative and qualitative variables output
+plot(as.factor(cars$model), as.numeric(cars$mileage))
+
+
+#mean
+mean(cars$price)
+
+#median
+median(cars$mileage)
+
+#sd 
+sd(cars$price)
+
+#max price
+max(cars$price)
+
+#min price
+min(cars$price)
+
+#transform
+transform(cars$model)
+
+```
+
+#scatter plot & install ggplot and plot the scatter plot 
+```{r}
+install.packages("car")
+
+library(car)
+scatterplot(as.factor(cars$model), as.numeric(cars$price))
+
+library(ggplot2)
+
+ggplot(cars) +
+ aes(x = model, y = mileage, fill = engineSize, colour = Make) +
+ geom_boxplot() +
+ scale_fill_gradient() +
+ scale_color_hue(direction = 1) +
+ theme_minimal()
+
+```
