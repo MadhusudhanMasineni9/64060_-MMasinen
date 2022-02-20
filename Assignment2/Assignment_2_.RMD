@@ -1,0 +1,153 @@
+---
+title: "Assignment_2_"
+author: "MadhusudhanMasineni"
+date: "2/20/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## assignment:: k-NN for classification
+
+This assignment describes the steps for K-NN classification in R.
+
+We used **Universal bank** customers data includes demographic information, the customer’s relationship with the bank (mortgage, securities account, etc.), and the customer response to the last personal loan campaign (Personal Loan):
+
+Load the dataset and packages into R.
+
+```{r UniBank}
+library("readr")
+library("dplyr")
+library("ggplot2")
+library("caret")
+library("tidyverse")
+library("dummies")
+library('FNN')
+library("dplyr")
+
+
+rm(list=ls())
+uniBank <- read.csv("C:\\Users\\madhu\\OneDrive\\Desktop\\MS\\1stSem\\2.Fundamentals of ML\\Modules\\Mod4\\Assignment\\UniversalBank.csv")
+
+uniBank$Education = as.factor(uniBank$Education) # store categorized data levels
+uniBank_dummy = dummy.data.frame(select(uniBank,c(-ID,-ZIP.Code))) #remove zip, id
+uniBank_dummy$Personal.Loan = as.factor(uniBank_dummy$Personal.Loan) #accept = 1, not accept = 0 
+uniBank_dummy$CCAvg = as.integer(uniBank_dummy$CCAvg) #uniform all Datatypes
+
+set.seed(1234)
+train_index_1 = createDataPartition(uniBank_dummy$Personal.Loan, p = .6, list = FALSE)
+test_index_1 = setdiff(row.names(uniBank_dummy), train_index_1)
+train_data_1 = uniBank_dummy[train_index_1,] # train
+validation_data_1 = uniBank_dummy[-train_index_1,] # test 
+
+summary(train_data_1$Personal.Loan)
+summary(validation_data_1$Personal.Loan)
+
+new_DF = data.frame(Age = as.integer(40), Experience = as.integer(10), Income = as.integer(84), Family = as.integer(2), CCAvg = as.integer(2), Education1 = as.integer(0), Education2 = as.integer(1), Education3 = as.integer(0), Mortgage = as.integer(0), Securities.Account = as.integer(0), CD.Account = as.integer(0), Online = as.integer(1), CreditCard = as.integer(1))
+
+# preProcess for normalization :: change the values of numeric columns in the dataset to a common scale
+
+normalize_values <- preProcess(train_data_1[,c(-10)], method=c("center", "scale"))
+train_data_1[,c(-10)] <- predict(normalize_values, train_data_1[,c(-10)]) # Replace first two columns with normalized values
+
+validation_data_1[,c(-10)] <- predict(normalize_values, validation_data_1[,c(-10)])
+new_DF <- predict(normalize_values, new_DF)
+
+
+## summary
+summary(train_data_1)
+summary(validation_data_1)
+
+
+## knn
+
+knn_1 <- knn(train = train_data_1[,c(-10)], test = new_DF,
+                cl = train_data_1[,10],
+                k = 5, prob=TRUE) # suggested cutoff .5
+knn_attributes <- attributes(knn_1)
+knn_attributes[1]
+
+```
+#here levels 0
+# all 5 nearest neighbors will classified as a 0, in turn the customer will be classified as a 0.
+
+```{r knn attributes}
+knn_attributes[3]
+```
+
+
+# 2. What is a choice of k that balances between overfitting and ignoring the predictor information?
+
+```{r accuracy}
+accuracy_DF <- data.frame(k = seq(1, 14, 1), accuracy = rep(0, 14))
+
+for(i in 1:14) {
+  knn_2 <- knn(train = train_data_1[,-10],test = validation_data_1[,-10], cl = train_data_1[,10], k=i, prob=TRUE)
+  accuracy_DF[i, 2] <- confusionMatrix(knn_2, validation_data_1[,10])$overall[1]
+}
+accuracy_DF
+```
+# best choice of k which also balances the model from overfitting is k = 3
+
+# 3. Show the confusion matrix for the validation data that results from using the best k.
+# confusion matrix
+```{r knn_3}
+knn_3 <- knn(train = train_data_1[,-10],test = validation_data_1[,-10], cl = train_data_1[,10], k=3, prob=TRUE)
+confusionMatrix(knn_3, validation_data_1[,10])
+```
+
+# 4. Consider the following customer: Age = 40, Experience = 10, Income = 84, Family = 2, CCAvg = 2, Education_1 = 0, Education_2 = 1, Education_3 = 0, Mortgage = 0, Securities Account = 0, CD Account = 0, Online = 1 and Credit Card = 1. Classify the customer using the best k
+
+```{r knn_4}
+customer_DF= data.frame(Age = 40, Experience = 10, Income = 84, Family = 2, CCAvg = 2, Education_1 = 0, Education_2 = 1, Education_3 = 0, Mortgage = 0, Securities.Account = 0, CD.Account = 0, Online = 1, CreditCard = 1)
+knn_4 <- knn(train = train_data_1[,-10],test = customer_DF, cl = train_data_1[,10], k=3, prob=TRUE)
+knn_4
+```
+# customer classified as 1 with 100% probability, for k=3
+
+# 5. Repartition the data, this time into training, validation, and test sets (50% : 30% : 20%). Apply the k-NN method with the k chosen above. Compare the confusion matrix of the test set with that of the training and validation sets. Comment on the differences and their reason.
+
+```{r Repartition}
+uniBank_dummy = dummy.data.frame(select(uniBank,c(-ID,-ZIP.Code))) 
+uniBank_dummy$Personal.Loan = as.factor(uniBank_dummy$Personal.Loan) 
+uniBank_dummy$CCAvg = as.integer(uniBank_dummy$CCAvg)  
+
+set.seed(1234)
+train_index_1 = createDataPartition(uniBank_dummy$Personal.Loan, p = .5, list = FALSE)
+validation_index_1 =  sample(setdiff(rownames(uniBank_dummy),train_index_1), 0.3*dim(uniBank_dummy)[1])
+test_index_1 = setdiff(row.names(uniBank_dummy), union(train_index_1,validation_index_1))
+
+train_DF = uniBank_dummy[train_index_1,] # train
+validation_DF = uniBank_dummy[validation_index_1,] # validation
+test_DF = uniBank_dummy[test_index_1,] #test
+
+summary(train_DF)
+summary(validation_DF)
+summary(test_DF)
+
+norm_values <- preProcess(train_DF[,c(-10)],method = c("center","scale"))
+train_DF[,c(-10)] <- predict(norm_values, train_DF[,c(-10)])
+validation_DF[,c(-10)] <- predict(norm_values, validation_DF[,c(-10)])
+test_DF[,c(-10)] <- predict(norm_values, test_DF[,c(-10)])
+
+test_knn <- knn(train = train_DF[,c(-10)], test = test_DF[,c(-10)], 
+                cl=train_DF[,10], k=3, prob=TRUE)
+
+confusionMatrix(test_knn, test_DF[,10])
+
+validation_knn <- knn(train = train_DF[,-c(10)],test = validation_DF[,-c(10)], cl = train_DF[,10], k=3, prob=TRUE)
+
+confusionMatrix(validation_knn, validation_DF[,10])
+
+train_knn <- knn(train = train_DF[,-c(10)],test = train_DF[,-c(10)], cl = train_DF[,10], k=3, prob=TRUE)
+
+confusionMatrix(train_knn, train_DF[,10])
+
+```
+Test Accuracy : 0.965
+Valid Accuracy: 0.956
+Train Accuracy: 0.9748
+
+The model is being fit on the training data, we say that the classifications are most accurate on the training data set and least accurate on the test datasets.
