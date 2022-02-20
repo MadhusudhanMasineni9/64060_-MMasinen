@@ -89,7 +89,7 @@ for(i in 1:14) {
 }
 accuracy_DF
 ```
-# best choice of k which also balances the model from overfitting is k = 3
+# best choice of k which also balances the model from overfitting is k = 1 and k=3 have same accuracy
 
 # 3. Show the confusion matrix for the validation data that results from using the best k.
 # confusion matrix
